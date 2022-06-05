@@ -8,17 +8,27 @@ dynamodb = boto3.resource('dynamodb')
 todo_tbl = dynamodb.Table(os.environ['TODO_TBL'])
 
 def lambda_handler(event, context):
-    print(json.dumps(event))
 
+    '''
+    ## bodyの期待値
+    body = {
+        "login_token": ログインユーザーのトークン,
+        "todo_title": ログインに必要なPASS,
+        'todo_details': data['todo_details']
+    }
+    '''
     data = json.loads(event['body'])
+
     # 本当はバリデーションが必要
 
     todo = {
-        'login_id': data["login_id"],
+        'login_token': data["login_token"],
         'todo_id': str(uuid.uuid4()),
-        'title': data['title']
+        'todo_title': data['todo_title'],
+        'todo_details': data['todo_details']
     }
 
+    # DBへTODOを登録
     todo_tbl.put_item(Item=todo)
 
     return {

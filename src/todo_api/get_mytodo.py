@@ -17,7 +17,7 @@ def lambda_handler(event, context):
 
     try:
         todo_res = todo_tbl.query(
-            KeyConditionExpression=Key("login_id").eq(data["login_id"]),
+            KeyConditionExpression=Key("login_token").eq(data["login_token"]),
             ConsistentRead=True
         )
         print("INFO: todo find")

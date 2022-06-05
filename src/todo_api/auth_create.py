@@ -46,6 +46,7 @@ def lambda_handler(event, context):
             # DBへユーザー情報を登録
             auth_tbl.put_item(Item=user_data)
             print("【INFO】ユーザー登録完了")
+            body_message = json.dumps(user_data)
 
     except Exception as e:
         print("【DEBUG】例外によるNG")

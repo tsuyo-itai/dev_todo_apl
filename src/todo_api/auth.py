@@ -33,6 +33,8 @@ def lambda_handler(event, context):
             if login_data['login_pass'] == data['login_pass']:
                 # パスワードOK
                 print("【DEBUG】認証OK")
+                # ログイントークンを返す
+                body_message = login_data['login_token']
 
             else:
                 # パスワードNG

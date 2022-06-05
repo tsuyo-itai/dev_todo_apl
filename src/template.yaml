@@ -27,12 +27,12 @@ Resources:
     Properties:
       TableName: TODO_TABLE
       AttributeDefinitions:
-        - AttributeName: login_id
+        - AttributeName: login_token
           AttributeType: S
         - AttributeName: todo_id
           AttributeType: S
       KeySchema:
-        - AttributeName: login_id
+        - AttributeName: login_token
           KeyType: HASH
         - AttributeName: todo_id
           KeyType: RANGE
