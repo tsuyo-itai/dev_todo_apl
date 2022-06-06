@@ -13,8 +13,8 @@ def lambda_handler(event, context):
     ## bodyの期待値
     body = {
         "login_token": ログインユーザーのトークン,
-        "todo_title": ログインに必要なPASS,
-        'todo_details': data['todo_details']
+        "todo_title": TODOのタイトル,
+        'todo_details': TODOの内容
     }
     '''
     data = json.loads(event['body'])

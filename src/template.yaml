@@ -106,13 +106,13 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref TodoTBL
       Events:
-        HelloWorld:
+        GetMyToDo:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /todos
             Method: post
 
-  CreateFunction:
+  CreateMyToDoFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: todo_api/
@@ -121,13 +121,28 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref TodoTBL
       Events:
-        CreateTodo:
+        CreateMyTodo:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /todos/create
             Method: post
 
-  DeleteFunction:
+  UpdateMyToDoFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Properties:
+      CodeUri: todo_api/
+      Handler: update_mytodo.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTBL
+      Events:
+        UpdateMyToDo:
+          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Properties:
+            Path: /todos/{todo_id}
+            Method: put
+
+  DeleteMyToDoFunction:
     Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
     Properties:
       CodeUri: todo_api/
@@ -136,7 +151,7 @@ Resources:
         - DynamoDBCrudPolicy:
             TableName: !Ref TodoTBL
       Events:
-        DeleteTodo:
+        DeleteMyToDo:
           Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
           Properties:
             Path: /todos/{todo_id}
@@ -151,7 +166,7 @@ Resources:
   CreateFuncLogGroup:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Sub /aws/lambda/${CreateFunction}
+      LogGroupName: !Sub /aws/lambda/${UpdateMyToDoFunction}
       RetentionInDays: 7
 
 # iamRoleStatements:
