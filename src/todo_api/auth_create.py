@@ -4,6 +4,7 @@ import os
 import boto3
 import uuid
 
+# 使用するDBの定義
 dynamodb = boto3.resource('dynamodb')
 auth_tbl = dynamodb.Table(os.environ['AUTH_TBL'])
 
@@ -19,7 +20,7 @@ def lambda_handler(event, context):
     data = json.loads(event['body'])
 
     # 応答情報の初期化
-    status_code = HTTPStatus.OK
+    status_code = HTTPStatus.CREATED
     body_message = ""
 
     try:
@@ -29,15 +30,11 @@ def lambda_handler(event, context):
         # 取得結果はItemプロパティに格納される
         if "Item" in auth_tbl_res:
             # 既にログインIDは存在するのでユーザー作成は行わない
-            print("【DEBUG】すでに登録済み")
-            # TODO ステータスコードは妥当か?
-            status_code = HTTPStatus.CONFLICT 
-            body_message = "既にユーザー登録済みです"
+            status_code = HTTPStatus.CONFLICT
+            body_message = {"message": "既にユーザー登録済みです"}
 
         else:
             # ログインIDは存在しないのでユーザー登録
-            print("【DEBUG】ユーザー登録実行")
-
             user_data = {
                 'login_id': data['login_id'],
                 'login_pass': data['login_pass'],
@@ -45,14 +42,13 @@ def lambda_handler(event, context):
             }
             # DBへユーザー情報を登録
             auth_tbl.put_item(Item=user_data)
-            print("【INFO】ユーザー登録完了")
-            body_message = json.dumps(user_data)
+            # responceにユーザー情報を設定
+            body_message = user_data
 
     except Exception as e:
-        print("【DEBUG】例外によるNG")
         #TODO どのような例外が起こる可能性があるか? それに適した処理が必要か
         status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        body_message = "何らかの原因で失敗しました"
+        body_message = {"message": "Internal Server Error"}
 
 
     return {
@@ -62,6 +58,6 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
         },
-        "body": body_message
+        "body": json.dumps(body_message)
     }
 

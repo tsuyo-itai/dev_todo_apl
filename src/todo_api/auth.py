@@ -3,6 +3,7 @@ import json
 import os
 import boto3
 
+# 使用するDBの定義
 dynamodb = boto3.resource('dynamodb')
 auth_tbl = dynamodb.Table(os.environ['AUTH_TBL'])
 
@@ -32,28 +33,25 @@ def lambda_handler(event, context):
             # パスワードの照合
             if login_data['login_pass'] == data['login_pass']:
                 # パスワードOK
-                print("【DEBUG】認証OK")
                 # ログイントークンを返す
-                body_message = login_data['login_token']
+                body_message = {"login_token": login_data['login_token']}
 
             else:
                 # パスワードNG
-                print("【DEBUG】認証NG (パスワードNG)")
                 status_code = HTTPStatus.UNAUTHORIZED
-                body_message = "パスワードに誤りがあります"
+
+                body_message = {"message": "ログインIDまたはパスワードに誤りがあります"}
 
         else:
             # ログインIDがhitしなかった場合
-            print("【DEBUG】認証NG (ユーザーNG)")
             status_code = HTTPStatus.UNAUTHORIZED
-            body_message = "ユーザー登録を行ってください"
+            body_message = {"message": "ログインIDまたはパスワードに誤りがあります"}
 
 
     except Exception as e:
-        print("【DEBUG】例外によるNG")
         #TODO どのような例外が起こる可能性があるか? それに適した処理が必要か
         status_code = HTTPStatus.INTERNAL_SERVER_ERROR
-        body_message = "ユーザー登録を行ってください"
+        body_message = {"message": "Internal Server Error"}
 
 
     return {
@@ -63,5 +61,5 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
         },
-        "body": body_message
+        "body": json.dumps(body_message)
     }

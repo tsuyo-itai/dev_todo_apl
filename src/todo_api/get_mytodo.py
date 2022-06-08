@@ -4,32 +4,33 @@ import os
 import boto3
 from boto3.dynamodb.conditions import Key
 
-
+# 使用するDBの定義
 dynamodb = boto3.resource('dynamodb')
 todo_tbl = dynamodb.Table(os.environ['TODO_TBL'])
 
 def lambda_handler(event, context):
-
+    '''
+    ## bodyの期待値
+    body = {
+        "login_token": ログインユーザーのトークン
+    }
+    '''
     data = json.loads(event['body'])
 
+    # 応答情報の初期化
     status_code = HTTPStatus.OK
-    body_message = ""
+    body_message = []
 
     try:
         todo_res = todo_tbl.query(
             KeyConditionExpression=Key("login_token").eq(data["login_token"]),
             ConsistentRead=True
         )
-        print("INFO: todo find")
-        print(todo_res)
         body_message = todo_res['Items']
-        print(body_message)
 
 
     except Exception as e:
-        print(e)
-        print("ERROR: table not found.")
-        status_code = HTTPStatus.NOT_FOUND
+        status_code = HTTPStatus.INTERNAL_SERVER_ERROR
 
     return {
         "statusCode": status_code,
@@ -38,5 +39,5 @@ def lambda_handler(event, context):
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
         },
-        "body": json.dumps(body_message)
+        "body": json.dumps({"todos": body_message})
     }

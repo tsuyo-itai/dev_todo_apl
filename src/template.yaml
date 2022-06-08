@@ -5,7 +5,6 @@ Description: >
 
   Sample SAM Template for todo
 
-# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:
     Runtime: python3.7
@@ -18,8 +17,6 @@ Globals:
       AllowMethods: "'*'"
       AllowHeaders: "'*'"
       AllowOrigin: "'*'"
-      MaxAge: "'600'"
-
 
 Resources:
   TodoTBL:
@@ -53,22 +50,8 @@ Resources:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
 
-  # TodoTBL:
-  #   Type: AWS::Serverless::SimpleTable
-  #   Properties:
-  #     PrimaryKey: 
-  #       Name: login_id
-  #       Type: String
-  # AuthTBL:
-  #   Type: AWS::Serverless::SimpleTable
-  #   Properties:
-  #     PrimaryKey: 
-  #       Name: login_id
-  #       Type: String
-
-
   AuthFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: todo_api/
       Handler: auth.lambda_handler
@@ -77,13 +60,13 @@ Resources:
             TableName: !Ref AuthTBL
       Events:
         Auth:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /auth
             Method: post
 
   AuthCreateFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: todo_api/
       Handler: auth_create.lambda_handler
@@ -92,13 +75,13 @@ Resources:
             TableName: !Ref AuthTBL
       Events:
         AuthCreate:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /auth/create
             Method: post
 
   GetMyToDoFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: todo_api/
       Handler: get_mytodo.lambda_handler
@@ -107,13 +90,13 @@ Resources:
             TableName: !Ref TodoTBL
       Events:
         GetMyToDo:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /todos
             Method: post
 
   CreateMyToDoFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: todo_api/
       Handler: create_mytodo.lambda_handler
@@ -122,13 +105,13 @@ Resources:
             TableName: !Ref TodoTBL
       Events:
         CreateMyTodo:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
             Path: /todos/create
             Method: post
 
   UpdateMyToDoFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: todo_api/
       Handler: update_mytodo.lambda_handler
@@ -137,13 +120,13 @@ Resources:
             TableName: !Ref TodoTBL
       Events:
         UpdateMyToDo:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
-            Path: /todos/{todo_id}
+            Path: /todos
             Method: put
 
   DeleteMyToDoFunction:
-    Type: AWS::Serverless::Function # More info about Function Resource: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#awsserverlessfunction
+    Type: AWS::Serverless::Function
     Properties:
       CodeUri: todo_api/
       Handler: delete_mytodo.lambda_handler
@@ -152,36 +135,25 @@ Resources:
             TableName: !Ref TodoTBL
       Events:
         DeleteMyToDo:
-          Type: Api # More info about API Event Source: https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#api
+          Type: Api
           Properties:
-            Path: /todos/{todo_id}
+            Path: /todos
             Method: delete
 
-  AuthFuncLogGroup:
-    Type: AWS::Logs::LogGroup
+  SearchMyToDoFunction:
+    Type: AWS::Serverless::Function
     Properties:
-      LogGroupName: !Sub /aws/lambda/${AuthFunction}
-      RetentionInDays: 7
-
-  CreateFuncLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub /aws/lambda/${UpdateMyToDoFunction}
-      RetentionInDays: 7
-
-# iamRoleStatements:
-#   - Effect: Allow
-#     Action:
-#       - dynamodb:DescribeTable
-#       - dynamodb:Query
-#       - dynamodb:Scan
-#       - dynamodb:GetItem
-#       - dynamodb:PutItem
-#       - dynamodb:UpdateItem
-#       - dynamodb:DeleteItem
-#     # Restrict our IAM role permissions to
-#     # the specific table for the stage
-#     Resource: !Ref AuthTBL
+      CodeUri: todo_api/
+      Handler: search_mytodo.lambda_handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTBL
+      Events:
+        SearchMyToDo:
+          Type: Api
+          Properties:
+            Path: /todos/search
+            Method: post
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function
@@ -190,9 +162,3 @@ Outputs:
   HelloWorldApi:
     Description: "API Gateway endpoint URL for Prod stage for Hello World function"
     Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/todos/"
-  # HelloWorldFunction:
-  #   Description: "Hello World Lambda Function ARN"
-  #   Value: !GetAtt HelloWorldFunction.Arn
-  # HelloWorldFunctionIamRole:
-  #   Description: "Implicit IAM Role created for Hello World function"
-  #   Value: !GetAtt HelloWorldFunctionRole.Arn
