@@ -3,6 +3,7 @@ import json
 import os
 import boto3
 from boto3.dynamodb.conditions import Key
+import uuid
 
 # 使用するDBの定義
 dynamodb = boto3.resource('dynamodb')
@@ -17,26 +18,33 @@ def lambda_handler(event, context):
     }
     '''
     data = json.loads(event['body'])
+    login_token = data['login_token']
+    search_word = data['search_word']
 
     # 応答情報の初期化
     status_code = HTTPStatus.OK
     body_message = []
 
     try:
-        todo_res = todo_tbl.query(
-            KeyConditionExpression=Key('login_token').eq(data['login_token'])
-        )
+        if ValidationDatas(login_token, search_word):
+            ## バリデーションOK
+            todo_res = todo_tbl.query(
+                KeyConditionExpression=Key('login_token').eq(login_token)
+            )
 
-        for todo_data in todo_res['Items']:
-            # タイトルに検索ワードが含まれるか
-            if data['search_word'] in todo_data['todo_title']:
-                body_message.append(todo_data)
-                continue
-            
-            # 内容に検索ワードが含まれるか
-            if data['search_word'] in todo_data['todo_details']:
-                body_message.append(todo_data)
-                continue
+            for todo_data in todo_res['Items']:
+                # タイトルに検索ワードが含まれるか
+                if search_word in todo_data['todo_title']:
+                    body_message.append(todo_data)
+                    continue
+                
+                # 内容に検索ワードが含まれるか
+                if search_word in todo_data['todo_details']:
+                    body_message.append(todo_data)
+                    continue
+        else:
+            ## バリデーションNG
+            status_code = HTTPStatus.BAD_REQUEST
 
     except Exception as e:
         #TODO どのような例外が起こる可能性があるか? それに適した処理が必要か
@@ -52,3 +60,22 @@ def lambda_handler(event, context):
         "body": json.dumps({"todos": body_message})
     }
 
+
+'''-------------------------------------------------
+@ バリデーション関数
+@ in        login_token: ログイントークン
+            search_word: 検索ワード
+@ return    バリデーションOK: True  バリデーションNG:False
+-------------------------------------------------'''
+def ValidationDatas(login_token, search_word):
+    # UUIDの形式であるか
+    try:
+        uuid.UUID(login_token, version=4)
+    except:
+        return False
+    
+    # 最大許容文字数512文字までとする
+    if not (0 < len(search_word) and len(search_word) <= 512):
+        return False
+
+    return True

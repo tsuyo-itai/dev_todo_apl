@@ -19,31 +19,40 @@ def lambda_handler(event, context):
     '''
     data = json.loads(event['body'])
 
+    login_id = data['login_id']
+    login_pass = data['login_pass']
+
     # 応答情報の初期化
     status_code = HTTPStatus.CREATED
     body_message = ""
 
     try:
-        # 指定したログインIDは存在するか?
-        auth_tbl_res = auth_tbl.get_item(Key={"login_id": data['login_id']})
+        if ValidationDatas(login_id, login_pass):
+            # 指定したログインIDは存在するか?
+            auth_tbl_res = auth_tbl.get_item(Key={"login_id": data['login_id']})
 
-        # 取得結果はItemプロパティに格納される
-        if "Item" in auth_tbl_res:
-            # 既にログインIDは存在するのでユーザー作成は行わない
-            status_code = HTTPStatus.CONFLICT
-            body_message = {"message": "既にユーザー登録済みです"}
+            # 取得結果はItemプロパティに格納される
+            if "Item" in auth_tbl_res:
+                # 既にログインIDは存在するのでユーザー作成は行わない
+                status_code = HTTPStatus.CONFLICT
+                body_message = {"message": "既にユーザー登録済みです"}
+
+            else:
+                # ログインIDは存在しないのでユーザー登録
+                user_data = {
+                    'login_id': data['login_id'],
+                    'login_pass': data['login_pass'],
+                    'login_token': str(uuid.uuid4())
+                }
+                # DBへユーザー情報を登録
+                auth_tbl.put_item(Item=user_data)
+                # responceにユーザー情報を設定
+                body_message = user_data
 
         else:
-            # ログインIDは存在しないのでユーザー登録
-            user_data = {
-                'login_id': data['login_id'],
-                'login_pass': data['login_pass'],
-                'login_token': str(uuid.uuid4())
-            }
-            # DBへユーザー情報を登録
-            auth_tbl.put_item(Item=user_data)
-            # responceにユーザー情報を設定
-            body_message = user_data
+            ## バリデーションNG
+            status_code = HTTPStatus.BAD_REQUEST
+            body_message = {"message": "入力された値が不正です"}
 
     except Exception as e:
         #TODO どのような例外が起こる可能性があるか? それに適した処理が必要か
@@ -61,3 +70,20 @@ def lambda_handler(event, context):
         "body": json.dumps(body_message)
     }
 
+
+'''-------------------------------------------------
+@ バリデーション関数
+@ in        login_id: ログインID
+            login_pass: ログインパスワード
+@ return    バリデーションOK: True  バリデーションNG:False
+-------------------------------------------------'''
+def ValidationDatas(login_id, login_pass):
+    # ログインIDは36文字までとする
+    if not (0 < len(login_id) and len(login_id) <= 36):
+        return False
+
+    # ログインPASSは36文字までとする
+    if not (0 < len(login_pass) and len(login_pass) <= 36):
+        return False
+
+    return True
