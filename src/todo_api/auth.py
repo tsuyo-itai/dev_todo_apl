@@ -2,12 +2,16 @@ from http import HTTPStatus
 import json
 import os
 import boto3
+from scryp import decrypt
 
 # 使用するDBの定義
 dynamodb = boto3.resource('dynamodb')
 auth_tbl = dynamodb.Table(os.environ['AUTH_TBL'])
 
 def lambda_handler(event, context):
+
+    # 暗号化のためのシークレットキー
+    secret_key = "secret_key_todoapl"
 
     '''
     ## bodyの期待値
@@ -36,7 +40,7 @@ def lambda_handler(event, context):
                 # ログインIDがhitした場合
                 login_data = auth_tbl_res['Item']
                 # パスワードの照合
-                if login_data['login_pass'] == login_pass:
+                if decrypt(login_data['login_pass'], secret_key) == login_pass:
                     # パスワードOK
                     # ログイントークンを返す
                     body_message = {"login_token": login_data['login_token']}

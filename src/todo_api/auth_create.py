@@ -3,12 +3,17 @@ import json
 import os
 import boto3
 import uuid
+from scryp import encrypt
+
 
 # 使用するDBの定義
 dynamodb = boto3.resource('dynamodb')
 auth_tbl = dynamodb.Table(os.environ['AUTH_TBL'])
 
 def lambda_handler(event, context):
+
+    # 暗号化のためのシークレットキー
+    secret_key = "secret_key_todoapl"
 
     '''
     ## bodyの期待値
@@ -29,7 +34,7 @@ def lambda_handler(event, context):
     try:
         if ValidationDatas(login_id, login_pass):
             # 指定したログインIDは存在するか?
-            auth_tbl_res = auth_tbl.get_item(Key={"login_id": data['login_id']})
+            auth_tbl_res = auth_tbl.get_item(Key={"login_id": login_id})
 
             # 取得結果はItemプロパティに格納される
             if "Item" in auth_tbl_res:
@@ -38,10 +43,11 @@ def lambda_handler(event, context):
                 body_message = {"message": "既にユーザー登録済みです"}
 
             else:
+
                 # ログインIDは存在しないのでユーザー登録
                 user_data = {
-                    'login_id': data['login_id'],
-                    'login_pass': data['login_pass'],
+                    'login_id': login_id,
+                    'login_pass': encrypt(login_pass, secret_key),
                     'login_token': str(uuid.uuid4())
                 }
                 # DBへユーザー情報を登録

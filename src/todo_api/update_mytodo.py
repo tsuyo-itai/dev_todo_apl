@@ -3,6 +3,7 @@ import os
 import boto3
 import json
 import uuid
+from datetime import datetime
 
 # 使用するDBの定義
 dynamodb = boto3.resource('dynamodb')
@@ -16,7 +17,8 @@ def lambda_handler(event, context):
         "login_token": ログインユーザーのトークン,
         "todo_id": TODOのID,
         "todo_title": TODOのタイトル,
-        'todo_details': TODOの内容
+        "todo_details": TODOの内容,
+        "todo_expired_at_unix_time": TODOの期限 (設定しない場合は不要)
     }
     '''
     data = json.loads(event['body'])
@@ -24,31 +26,54 @@ def lambda_handler(event, context):
     todo_id = data['todo_id']
     todo_title = data['todo_title']
     todo_details = data['todo_details']
+     # ToDoの期限設定があるか?
+    if 'todo_expired_at_unix_time' in data:
+        todo_expired_at_unix_time = data['todo_expired_at_unix_time']
+    else:
+        todo_expired_at_unix_time = None
 
     # 応答情報の初期化
     status_code = HTTPStatus.OK
     body_message = ""
 
     try:
-        if ValidationDatas(login_token, todo_id, todo_title, todo_details):
+        if ValidationDatas(login_token, todo_id, todo_title, todo_details, todo_expired_at_unix_time):
             #TODO 指定したtodoIDのチェック
             todo_res = todo_tbl.get_item(Key={"login_token": login_token, "todo_id": todo_id})
 
             if "Item" in todo_res:
                 # todoが存在する
                 # 更新用データの設定
-                options = {
-                    'Key': {"login_token": login_token, "todo_id": todo_id},
-                    "UpdateExpression": "set #todo_title = :todo_title, #todo_details = :todo_details",
-                    "ExpressionAttributeNames": {
-                        "#todo_title": "todo_title",
-                        "#todo_details": "todo_details"
-                    },
-                    "ExpressionAttributeValues": {
-                        ":todo_title": todo_title,
-                        ":todo_details": todo_details,
+                if todo_expired_at_unix_time is not None:
+                    # ToDo期限設定がある場合のフォーマット
+                    options = {
+                        'Key': {"login_token": login_token, "todo_id": todo_id},
+                        "UpdateExpression": "set #todo_title = :todo_title, #todo_details = :todo_details, #todo_expired_at_unix_time = :todo_expired_at_unix_time",
+                        "ExpressionAttributeNames": {
+                            "#todo_title": "todo_title",
+                            "#todo_details": "todo_details",
+                            "#todo_expired_at_unix_time": "todo_expired_at_unix_time"
+                        },
+                        "ExpressionAttributeValues": {
+                            ":todo_title": todo_title,
+                            ":todo_details": todo_details,
+                            ":todo_expired_at_unix_time": todo_expired_at_unix_time,
+                        }
                     }
-                }
+                else:
+                    # ToDo期限設定がない場合のフォーマット
+                    options = {
+                        'Key': {"login_token": login_token, "todo_id": todo_id},
+                        "UpdateExpression": "set #todo_title = :todo_title, #todo_details = :todo_details",
+                        "ExpressionAttributeNames": {
+                            "#todo_title": "todo_title",
+                            "#todo_details": "todo_details"
+                        },
+                        "ExpressionAttributeValues": {
+                            ":todo_title": todo_title,
+                            ":todo_details": todo_details,
+                        }
+                    }
 
                 # DBのToDoを更新
                 todo_tbl.update_item(**options)
@@ -89,9 +114,10 @@ def lambda_handler(event, context):
             todo_id: ToDoのID
             todo_title: ToDoのタイトル
             todo_details: ToDoの内容
+            todo_expired_at_unix_time: ToDoの有効期限
 @ return    バリデーションOK: True  バリデーションNG:False
 -------------------------------------------------'''
-def ValidationDatas(login_token, todo_id, todo_title, todo_details):
+def ValidationDatas(login_token, todo_id, todo_title, todo_details, todo_expired_at_unix_time):
     # UUIDの形式であるか
     try:
         uuid.UUID(login_token, version=4)
@@ -106,5 +132,13 @@ def ValidationDatas(login_token, todo_id, todo_title, todo_details):
     # 内容は512文字までとする
     if not (0 < len(todo_details) and len(todo_details) <= 512):
         return False
+
+    if todo_expired_at_unix_time is not None:
+        # UNIX時間であるか
+        try:
+            datetime.fromtimestamp(int(todo_expired_at_unix_time))
+        except:
+            # 変換に失敗した場合はUNIX時間の形式ではない
+            return False
 
     return True
