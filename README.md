@@ -1,12 +1,14 @@
 # dev_todo_apl
 
-## セットアップ
+## RESTAPIのセットアップ
 
 Macのターミナルから実行
 
 ### 必要なモジュール類のインストール
 
-`$ pip3 install aws-sam-cli moto pytest`
+```
+$ pip install aws-sam-cli
+```
 
 
 ### AWS認証情報の設定
@@ -26,11 +28,17 @@ Default output format [text]: json
 
 ### SAMのセットアップ
 
-ビルドの実行
+```
+$ cd src
+```
 
-`$ sam build`
+#### ビルドの実行
 
-デプロイ
+```
+$ sam build
+```
+
+#### デプロイ
 
 ```
 $ sam deploy --guided
@@ -43,8 +51,10 @@ Disable rollback [y/N]: y
 AuthFunction may not have authorization defined, Is this okay? [y/N]: y
 AuthCreateFunction may not have authorization defined, Is this okay? [y/N]: y
 GetMyToDoFunction may not have authorization defined, Is this okay? [y/N]: y
-CreateFunction may not have authorization defined, Is this okay? [y/N]: y
-DeleteFunction may not have authorization defined, Is this okay? [y/N]: y
+CreateMyToDoFunction may not have authorization defined, Is this okay? [y/N]: y
+UpdateMyToDoFunction may not have authorization defined, Is this okay? [y/N]: y
+DeleteMyToDoFunction may not have authorization defined, Is this okay? [y/N]: y
+SearchMyToDoFunction may not have authorization defined, Is this okay? [y/N]: y
 Save arguments to configuration file [Y/n]: Y
 SAM configuration file [samconfig.toml]: Enter
 SAM configuration environment [default]: Enter
@@ -52,5 +62,43 @@ SAM configuration environment [default]: Enter
 Deploy this changeset? [y/N]: y
 
 ```
+
+## GUIアプリケーションのセットアップ
+
+Macのターミナルから実行
+
+RESTAPIの動作をWebアプリケーション(ToDo管理アプリ)から確認することも可能です
+
+### 必要なモジュール類のインストール
+
+事前にnode.jsとnpmのインストールが必要です
+
+#### vueのインストール
+
+`$ npm install -g @vue/cli`
+
+#### node_modulesのインストール
+
+`$ cd vueapp`
+
+`$ npm install`
+
+### ローカルサーバーでVueアプリを起動
+
+__※ 事前に `vueapp/src/main.js`の`axios.defaults.baseURL`に、上記SAMでデプロイ後のAPIゲートウェイエンドポイントURLを指定する__
+
+*`axios.defaults.baseURL="https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com"`*
+
+```
+$ cd vueapp
+```
+
+```
+$ npm run serve
+```
+
+*_`http://localhost:8080/`_*でRESTAPIに対応したToDo管理アプリを使用することが可能です
+
+
 
 
