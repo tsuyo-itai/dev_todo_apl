@@ -1,6 +1,8 @@
-# dev_todo_apl
+# ToDo管理用RESTAPI
 
 ## RESTAPIのセットアップ
+
+**AWS SAMを使用したRESTAPI構築のため、AWSアカウントが必須です**
 
 Macのターミナルから実行
 
@@ -79,9 +81,13 @@ RESTAPIの動作をWebアプリケーション(ToDo管理アプリ)から確認�
 
 #### node_modulesのインストール
 
-`$ cd vueapp`
+```
+$ cd vueapp
+```
 
-`$ npm install`
+```
+$ npm install
+```
 
 ### ローカルサーバーでVueアプリを起動
 
@@ -97,7 +103,7 @@ $ cd vueapp
 $ npm run serve
 ```
 
-*_`http://localhost:8080/`_*でRESTAPIに対応したToDo管理アプリを使用することが可能です
+**_`http://localhost:8080/`_**でRESTAPIに対応したToDo管理アプリを使用することが可能です
 
 
 

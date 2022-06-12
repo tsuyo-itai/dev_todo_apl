@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p>ユーザー登録画面</p>
+    <h1>ユーザー登録画面</h1>
     <div>
       <input
         type="text"
@@ -64,5 +64,17 @@ export default {
 <style scoped>
 .error_msg {
   color: red;
+}
+
+h1 {
+  color: #dc143c;
+}
+
+input {
+  margin: 7px;
+}
+
+button {
+  margin: 7px;
 }
 </style>

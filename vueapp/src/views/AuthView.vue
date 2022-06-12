@@ -1,6 +1,6 @@
 <template>
   <div>
-    <p>ログイン画面</p>
+    <h1>ログイン画面</h1>
     <div>
       <input
         type="text"
@@ -55,9 +55,11 @@ export default {
         .then((response) => {
           console.log("【POST】API OK!!");
           // 認証成功時はログイントークンが返される
+          console.log(response.data);
           let login_token = response.data.login_token;
-          console.log(login_token);
+          let login_id = response.data.login_id;
           sessionStorage.setItem("login_token", login_token);
+          sessionStorage.setItem("login_id", login_id);
           this.$router.push("/todos");
         })
         .catch((error) => {
@@ -76,5 +78,17 @@ export default {
 <style scoped>
 .error_msg {
   color: red;
+}
+
+h1 {
+  color: #1e90ff;
+}
+
+input {
+  margin: 7px;
+}
+
+button {
+  margin: 7px;
 }
 </style>

@@ -1,6 +1,11 @@
 <template>
   <div class="todolist_body">
-    <p>ToDOリスト一覧</p>
+    <h1>ToDOリスト一覧</h1>
+    <div class="user-container">
+      <h4>ようこそ {{ LoginId }} さん</h4>
+      <button type="button" v-on:click="Logout">ログアウト</button>
+    </div>
+
     <div class="todocontainer">
       <h3>タイトル</h3>
       <h3>内容</h3>
@@ -83,7 +88,6 @@
       <button type="button" v-on:click="SearchToDo">検索</button>
       <button type="button" v-on:click="SearchToDoReset">検索リセット</button>
     </div>
-    <button type="button" v-on:click="Logout">ログアウト</button>
   </div>
 </template>
 
@@ -92,6 +96,7 @@ export default {
   data() {
     return {
       LoginToken: "",
+      LoginId: "",
       ToDoTitle: "",
       ToDoDetails: "",
       SearchWord: "",
@@ -108,6 +113,7 @@ export default {
     LoginCheck() {
       // セッションストレージからログイントークンを取得する
       this.LoginToken = sessionStorage.getItem("login_token");
+      this.LoginId = sessionStorage.getItem("login_id");
       console.log(this.LoginToken);
       if (this.LoginToken == null) {
         this.$router.replace("auth");
@@ -264,6 +270,7 @@ export default {
     Logout() {
       sessionStorage.clear();
       this.LoginToken = "";
+      this.LoginId = "";
       this.LoginCheck();
     },
   },
@@ -277,6 +284,16 @@ input {
 
 button {
   margin: 5px;
+}
+
+.user-container {
+  display:flex;
+  justify-content: center;
+}
+
+.user-container button {
+  max-height: 35px;
+  margin: auto 15px;
 }
 
 .todolist_body {

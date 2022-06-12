@@ -42,8 +42,8 @@ def lambda_handler(event, context):
                 # パスワードの照合
                 if decrypt(login_data['login_pass'], secret_key) == login_pass:
                     # パスワードOK
-                    # ログイントークンを返す
-                    body_message = {"login_token": login_data['login_token']}
+                    # ログインIDとログイントークンを返す
+                    body_message = {"login_id": login_data['login_id'], "login_token": login_data['login_token']}
 
                 else:
                     # パスワードNG
