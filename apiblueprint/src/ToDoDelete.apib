@@ -1,0 +1,35 @@
+FORMAT: 1A
+
+# Group TODO管理
+
+## ToDo削除のエンドポイント [/Prod/todos]
+
+### ToDo削除API [DELETE]
+
+#### 処理概要
+
+* ToDoの削除を行う.
+
++ Request (application/json)
+
+    + Headers
+
+            Accept: application/json
+
+    + Attributes
+        + login_token: `1a772109-3694-42c9-9e2e-f141e789fd84` (string, required) - ログイントークン(format: uuid)
+        + todo_id: `c0abebfd-0f27-44d4-8d39-7e8d67b937e6` (string, required) - ToDoID(format: uuid)
+
++ Response 204 (application/json)
+
+    + Attributes
+
++ Response 400 (application/json)
+
+    + Attributes
+        + message: `入力された値が不正です` (string, required) - エラーメッセージ(format: string)
+
++ Response 500 (application/json)
+
+    + Attributes
+        + message: `Internal Server Error` (string, required) - エラーメッセージ(format: string)

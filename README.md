@@ -105,6 +105,12 @@ $ npm run serve
 
 **_`http://localhost:8080/`_**でRESTAPIに対応したToDo管理アプリを使用することが可能です
 
+## API仕様書
+
+APIBlueprintを使用して作成
+
+API仕様書は`ToDoAplAPI.html`
+
 
 
 

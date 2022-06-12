@@ -1,0 +1,7 @@
+{
+  "dependencies": {
+    "aglio": "^2.3.0",
+    "drakov": "^2.0.1",
+    "dredd": "^14.1.0"
+  }
+}

@@ -1,0 +1,44 @@
+FORMAT: 1A
+
+# Group ユーザー管理
+
+## ToDo管理ユーザログインのエンドポイント [/Prod/auth]
+
+### ToDo管理ユーザログインAPI [POST]
+
+#### 処理概要
+
+* ToDo管理ユーザーのログインを行う.
+* ログイン成功時に、ユーザーのログイントークンを返す.
+　(以降ログイントークンとToDo情報が紐付けられる)
+
++ Request (application/json)
+
+    + Headers
+
+            Accept: application/json
+
+    + Attributes
+        + login_id: abc123 (string, required) - ログインID(format: string) - ログインIDの上限は36文字
+        + login_pass: pass1234 (string, required) - ログインパスワード(format: string) - ログインPASSの上限は36文字
+
++ Response 200 (application/json)
+
+    + Attributes
+        + login_id: `abc123` (string, required) - ログインID(format: string) - ログインIDの上限は36文字
+        + login_token: `1a772109-3694-42c9-9e2e-f141e789fd84` (string, required) - ログイントークン(format: uuid)
+
++ Response 400 (application/json)
+
+    + Attributes
+        + message: `入力された値が不正です` (string, required) - エラーメッセージ(format: string)
+
++ Response 401 (application/json)
+
+    + Attributes
+        + message: ログインIDまたはパスワードに誤りがあります (string, required) - エラーメッセージ(format: string)
+
++ Response 500 (application/json)
+
+    + Attributes
+        + message: `Internal Server Error` (string, required) - エラーメッセージ(format: string)

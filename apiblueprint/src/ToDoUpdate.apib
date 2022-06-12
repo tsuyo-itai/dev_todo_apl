@@ -1,0 +1,49 @@
+FORMAT: 1A
+
+# Group TODO管理
+
+## ToDo更新のエンドポイント [/Prod/todos]
+
+### ToDo更新API [PUT]
+
+#### 処理概要
+
+* ToDoの更新(編集)を行う.
+
++ Request (application/json)
+
+    + Headers
+
+            Accept: application/json
+
+    + Attributes
+        + login_token: `1a772109-3694-42c9-9e2e-f141e789fd84` (string, required) - ログイントークン(format: uuid)
+        + todo_id: `c0abebfd-0f27-44d4-8d39-7e8d67b937e6` (string, required) - ToDoID(format: uuid)
+        + todo_title: hogehoge (string, required) - ToDoのタイトル(format: string) - タイトルの上限は256文字
+        + todo_details: hugahuga (string, required) - ToDoの内容(format: string) - 内容の上限は512文字
+        + todo_expired_at_unix_time : 1655442000 (string) - ToDoの期限 unix時間(format: string)
+
+
++ Response 200 (application/json)
+
+    + Attributes
+        + login_token: `1a772109-3694-42c9-9e2e-f141e789fd84` (string, required) - ログイントークン(format: uuid)
+        + todo_id: `c0abebfd-0f27-44d4-8d39-7e8d67b937e6` (string, required) - ToDoID(format: uuid)
+        + todo_title: hogehoge (string, required) - ToDoのタイトル(format: string) - タイトルの上限は256文字
+        + todo_details: hugahuga (string, required) - ToDoの内容(format: string) - 内容の上限は512文字
+        + todo_expired_at_unix_time : 1655442000 (string) - ToDoの期限 unix時間(format: string)
+
++ Response 400 (application/json)
+
+    + Attributes
+        + message: `入力された値が不正です` (string, required) - エラーメッセージ(format: string)
+
++ Response 404 (application/json)
+
+    + Attributes
+        + message: 指定のToDoが見つかりませんでした (string, required) - エラーメッセージ(format: string)
+
++ Response 500 (application/json)
+
+    + Attributes
+        + message: `Internal Server Error` (string, required) - エラーメッセージ(format: string)
