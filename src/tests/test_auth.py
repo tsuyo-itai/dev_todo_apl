@@ -1,8 +1,7 @@
 from http import HTTPStatus
 import boto3
 import sys
-import uuid
-from scryp import encrypt
+from scryp import decrypt
 
 # 使用するDBの定義
 table_name="AUTH_TABLE"
@@ -45,32 +44,35 @@ if __name__ == "__main__":
     login_pass = args[2]
 
     # 応答情報の初期化
-    status_code = HTTPStatus.CREATED
+    status_code = HTTPStatus.OK
     body_message = ""
 
     try:
         if ValidationDatas(login_id, login_pass):
+            ## バリデーションOK
             # 指定したログインIDは存在するか?
             auth_tbl_res = auth_tbl.get_item(Key={"login_id": login_id})
 
             # 取得結果はItemプロパティに格納される
             if "Item" in auth_tbl_res:
-                # 既にログインIDは存在するのでユーザー作成は行わない
-                status_code = HTTPStatus.CONFLICT
-                body_message = {"message": "既にユーザー登録済みです"}
+                # ログインIDがhitした場合
+                login_data = auth_tbl_res['Item']
+                # パスワードの照合
+                if decrypt(login_data['login_pass'], secret_key) == login_pass:
+                    # パスワードOK
+                    # ログインIDとログイントークンを返す
+                    body_message = {"login_id": login_data['login_id'], "login_token": login_data['login_token']}
+
+                else:
+                    # パスワードNG
+                    status_code = HTTPStatus.UNAUTHORIZED
+
+                    body_message = {"message": "ログインIDまたはパスワードに誤りがあります"}
 
             else:
-
-                # ログインIDは存在しないのでユーザー登録
-                user_data = {
-                    'login_id': login_id,
-                    'login_pass': encrypt(login_pass, secret_key),
-                    'login_token': str(uuid.uuid4())
-                }
-                # DBへユーザー情報を登録
-                auth_tbl.put_item(Item=user_data)
-                # responceにユーザー情報を設定
-                body_message = user_data
+                # ログインIDがhitしなかった場合
+                status_code = HTTPStatus.UNAUTHORIZED
+                body_message = {"message": "ログインIDまたはパスワードに誤りがあります"}
 
         else:
             ## バリデーションNG

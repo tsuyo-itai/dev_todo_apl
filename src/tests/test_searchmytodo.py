@@ -1,60 +1,84 @@
 from http import HTTPStatus
-import json
-import os
 import boto3
+import sys
 import uuid
 from boto3.dynamodb.conditions import Key
 
 
-#-------以下はtest以外は不要 ---------
-import sys
-#-------
-
+# 使用するDBの定義
 table_name="TODO_TABLE"
-
 dynamodb = boto3.resource('dynamodb')
 todo_tbl = dynamodb.Table(table_name)
 
-#! ほしい情報は login_tokenとtodo_id
-#-------以下はtest以外は不要 ---------
-args = sys.argv
+'''-------------------------------------------------
+@ バリデーション関数
+@ in        login_token: ログイントークン
+            search_word: 検索ワード
+@ return    バリデーションOK: True  バリデーションNG:False
+-------------------------------------------------'''
+def ValidationDatas(login_token, search_word):
+    # UUIDの形式であるか
+    try:
+        uuid.UUID(login_token, version=4)
+    except:
+        return False
+    
+    # 最大許容文字数512文字までとする
+    if not (0 < len(search_word) and len(search_word) <= 512):
+        return False
 
-if (len(args) != 3):
-    print("引数エラー")
-    sys.exit()
-#-------
-print(args[1])
-print(args[2])
-
-
-
-try:
-    # 応答データを格納するため用意
-    res_datas = []
-
-    todo_res = todo_tbl.query(
-        KeyConditionExpression=Key('login_token').eq(args[1])
-    )
-
-    for todo_data in todo_res['Items']:
-
-        # タイトルに検索ワードが含まれるか
-        if args[2] in todo_data['todo_title']:
-            res_datas.append(todo_data)
-            continue
-        
-        # 内容に検索ワードが含まれるか
-        if args[2] in todo_data['todo_details']:
-            res_datas.append(todo_data)
-            continue
-
-    print(res_datas)
+    return True
 
 
+if __name__ == "__main__": 
 
+    # 引数から送信データを作成
+    args = sys.argv
 
+    if (len(args) != 3):
+        print("引数エラー")
+        print("第1引数: login_token")
+        print("第2引数: search_word")
+        sys.exit()
 
-except Exception as e:
-    print(e)
-    print("ERROR: table not found.")
+    login_token = args[1]
+    search_word = args[2]
 
+    # 応答情報の初期化
+    status_code = HTTPStatus.OK
+    body_message = []
+
+    try:
+        if ValidationDatas(login_token, search_word):
+            ## バリデーションOK
+            todo_res = todo_tbl.query(
+                KeyConditionExpression=Key('login_token').eq(login_token)
+            )
+
+            for todo_data in todo_res['Items']:
+                # タイトルに検索ワードが含まれるか
+                if search_word in todo_data['todo_title']:
+                    body_message.append(todo_data)
+                    continue
+                
+                # 内容に検索ワードが含まれるか
+                if search_word in todo_data['todo_details']:
+                    body_message.append(todo_data)
+                    continue
+        else:
+            ## バリデーションNG
+            status_code = HTTPStatus.BAD_REQUEST
+
+    except Exception as e:
+        #TODO どのような例外が起こる可能性があるか? それに適した処理が必要か
+        status_code = HTTPStatus.INTERNAL_SERVER_ERROR
+
+    print({
+        "statusCode": status_code,
+        'headers': {
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'OPTIONS,POST,GET'
+        },
+        "body": {"todos": body_message}
+    })
